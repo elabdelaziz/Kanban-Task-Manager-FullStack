@@ -8,7 +8,7 @@ const hashPass = (pass: string) => {
 };
 
 export type User = {
-  id: number;
+  id: string;
   email: string;
   user_name: string;
   first_name: string;
@@ -105,6 +105,8 @@ class UserStore {
 
       if (result.rows.length) {
         const { password: hashedPasswordFromDB } = result.rows[0];
+
+        // compare user password
         const isValid = bcrypt.compareSync(
           `${password}${config.pepper}`,
           hashedPasswordFromDB

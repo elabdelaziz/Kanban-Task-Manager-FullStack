@@ -35,7 +35,7 @@ export const getAll = async (req: Request, res: Response) => {
 
 export const getSingleUser = async (req: Request, res: Response) => {
   try {
-    const user = await userModel.getSingleUser(req.params.id as string);
+    const user = await userModel.getSingleUser(req.params.id);
     res.json({
       status: "success",
       data: { ...user },
@@ -61,7 +61,7 @@ export const updateSingleUser = async (req: Request, res: Response) => {
 
 export const deleteSingleUser = async (req: Request, res: Response) => {
   try {
-    const user = await userModel.deleteSingleUser(req.params.id as string);
+    const user = await userModel.deleteSingleUser(req.params.id);
     res.json({
       status: "success",
       data: { ...user },
