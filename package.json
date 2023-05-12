@@ -1,10 +1,16 @@
 {
+  "name": "kanban-fullstack",
+  "version": "1.0.0",
+  "description": "",
   "scripts": {
-    "api:install": "cd kanban/kanban-api && npm install .",
-    "api:build": "cd kanban/kanban-api && npm run build:bash",
-    "api:start": "cd kanban/kanban-api && npm run dev",
-    "api:deploy": "cd kanban/kanban-api && npm run deploy",
-    "api:deploy:bash": "cd kanban/kanban-api && npm run deploy:bash",
-    "deploy": "npm run api:deploy:bash && npm run frontend:deploy"
+    "backend": "cd server && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "start": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^8.0.1"
   }
 }
