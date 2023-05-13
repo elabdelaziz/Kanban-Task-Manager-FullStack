@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* *************************** */
+/* ********* layout ********** */
+/* *************************** */
+.page {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: 96px auto;
+  grid-template-areas:
+    "logo logo nav nav nav nav nav nav nav nav"
+    "side side cont cont cont cont cont cont cont cont"
+}
+.logo {
+  grid-area: logo;
+}
+nav {
+  grid-area: nav;
+}
+section {
+  grid-area: cont;
+  /* outline: auto; */
+}
+aside {
+  grid-area: side;
+}
+
+/* ----------------- scrollbar --------------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: rgb(22, 29, 47);
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background-color: rgb(90, 105, 143);
+    border-radius: 10px;
+    border: 3px none rgb(255, 255, 255);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #b30000; 
+}
+
+
+/* @media only screen and (max-width: 1271px) { */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+/* } */
+
+.card {
+  display: flex;
+  text-align: left;
+  flex-direction: column;
+  width: 100%;
+  min-height: 5.5rem;
+  background: var(--color-main);
+  border: 1px solid rgba(134,134,134,.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px #364e7e1a;
+  padding: 1.5rem 1rem;
+  margin-bottom: 1.5rem;
+  transition: filter .2s ease;
+}
+
+.sideBarHidden {
+  grid-template-areas:
+    "logo logo nav nav nav nav nav nav nav nav"
+    "cont cont cont cont cont cont cont cont cont cont"
+}
+
+.button {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  background: #635FC7;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  color: #fff;
+  font-size: .9375rem;
+  font-weight: 700;
+  transition: all .2s ease;
+}

@@ -8,7 +8,7 @@ const hashPass = (pass: string) => {
 };
 
 export type User = {
-  id: string;
+  id: number;
   email: string;
   user_name: string;
   first_name: string;

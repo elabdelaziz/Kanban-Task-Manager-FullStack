@@ -5,12 +5,14 @@ import routes from "./routes";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import errorMiddleware from "./middleware/error.middleware";
+import cors from "cors";
 
 const PORT = config.port || 5000;
 
 const app: express.Application = express();
 
 app.use(express.json());
+app.use(cors());
 app.use(helmet());
 app.use(
   rateLimit({
