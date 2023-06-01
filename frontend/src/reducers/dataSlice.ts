@@ -7,8 +7,15 @@ import {
   onAddTask,
   onAddNewColumn,
   onAddNewBoard,
+  onPopulateUserData,
 } from "@/actions/dataSliceActions";
 import { createSlice } from "@reduxjs/toolkit";
+
+export interface ActiveBoard {
+  activeBoardIndex: number;
+  activeBoardTitle: string;
+  // Add other properties if needed
+}
 
 export interface DataState {
   data: BoardsEntity[];
@@ -46,6 +53,7 @@ export const dataSlice = createSlice({
   initialState,
   reducers: {
     getLocalData: (state, action) => onGetLocalData(state, action),
+    populateUserData: (state, action) => onPopulateUserData(state, action),
     dragAndDrop: (state, action) => onDragAndDrop(state, action),
     setActiveColumn: (state, action) => {
       const activeColumn = onSetActiveColumn(state, action);
@@ -68,6 +76,7 @@ export const {
   addTask,
   addNewColumn,
   addNewBoard,
+  populateUserData,
 } = dataSlice.actions;
 
 export default dataSlice.reducer;

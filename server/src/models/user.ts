@@ -1,19 +1,11 @@
 import Client from "../database";
 import bcrypt from "bcrypt";
 import config from "../config";
-
+import { groupBy } from "lodash";
+import { User, Board, Task, Column } from "../types/dataTypes";
 const hashPass = (pass: string) => {
   const salt = parseInt(config.salt as string, 10);
   return bcrypt.hashSync(`${pass}${config.pepper}`, salt);
-};
-
-export type User = {
-  id: number;
-  email: string;
-  user_name: string;
-  first_name: string;
-  last_name: string;
-  password: string;
 };
 
 class UserStore {
@@ -100,7 +92,29 @@ class UserStore {
   async authenticate(email: string, password: string): Promise<User | null> {
     try {
       const conn = await Client.connect();
-      const sql = "SELECT password FROM users WHERE email=$1";
+      const sql = `
+      SELECT
+      u.id,
+      u.email,
+      u.user_name,
+      u.first_name,
+      u.last_name,
+      u.password,
+      b.id AS board_id,
+      b.title AS board_title,
+      c.id AS column_id,
+      c.title AS column_title,
+      t.id AS task_id,
+      t.title AS task_title,
+      st.id AS subtask_id,
+      st.title AS subtask_title
+      FROM users u
+      LEFT JOIN boards b ON u.id = b.user_id
+      LEFT JOIN columns c ON b.id = c.board_id
+      LEFT JOIN tasks t ON c.id = t.column_id
+      LEFT JOIN subtasks st ON t.id = st.task_id
+      WHERE u.email = $1
+    `;
       const result = await conn.query(sql, [email]);
 
       if (result.rows.length) {
@@ -113,13 +127,88 @@ class UserStore {
         );
 
         if (isValid) {
-          const userInfo = await conn.query(
-            "SELECT id, email, user_name, first_name, last_name FROM users WHERE email=($1)",
-            [email]
-          );
-          return userInfo.rows[0];
+          const user: any = {
+            id: result.rows[0].id,
+            email: result.rows[0].email,
+            user_name: result.rows[0].user_name,
+            first_name: result.rows[0].first_name,
+            last_name: result.rows[0].last_name,
+            boards: [],
+          };
+
+          // group the rows by board
+          const boardGroups = groupBy(result.rows, "board_id");
+
+          for (const boardId in boardGroups) {
+            if (boardGroups.hasOwnProperty(boardId)) {
+              const boardRows = boardGroups[boardId];
+              const board: Board = {
+                id: boardRows[0].board_id,
+                name: boardRows[0].board_title,
+                columns: [],
+              };
+
+              // group the rows by column
+              const columnGroups = groupBy(boardRows, "column_id");
+
+              for (const columnId in columnGroups) {
+                if (columnGroups.hasOwnProperty(columnId)) {
+                  const columnRows = columnGroups[columnId];
+                  const column: Column = {
+                    id: columnRows[0].column_id,
+                    name: columnRows[0].column_title,
+                    tasks: [],
+                  };
+
+                  // group the rows by task
+                  const taskGroups = groupBy(columnRows, "task_id");
+
+                  for (const taskId in taskGroups) {
+                    if (taskGroups.hasOwnProperty(taskId)) {
+                      const taskRows = taskGroups[taskId];
+                      const task: Task = {
+                        id: taskRows[0].task_id,
+                        title: taskRows[0].task_title,
+                        subtasks: [],
+                      };
+
+                      // add subtasks to task
+                      taskRows.forEach((row) => {
+                        if (row.subtask_id) {
+                          task.subtasks.push({
+                            id: row.subtask_id,
+                            title: row.subtask_title,
+                            isCompleted: row.subtask_completed,
+                          });
+                        }
+                      });
+
+                      // add task to column
+                      if (task.id !== null) {
+                        column.tasks.push(task);
+                      }
+                    }
+                  }
+
+                  // add column to board
+                  if (column.id !== null) {
+                    board.columns.push(column);
+                  }
+                }
+              }
+
+              // add board to user
+              if (board.id !== null) {
+                user.boards.push(board);
+              }
+            }
+          }
+
+          conn.release();
+          return user;
         }
       }
+
       conn.release();
       return null;
     } catch (err) {

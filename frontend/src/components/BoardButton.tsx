@@ -1,22 +1,32 @@
 import { Dispatch, SetStateAction } from "react";
 import { useTypedDispatch } from "@/hooks/useRedux";
-import { setActiveColumn } from "@/reducers/dataSlice";
+import { ActiveBoard, setActiveColumn } from "@/reducers/dataSlice";
 import { useTypedSelector } from "@/hooks/useRedux";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 type BoardProps = {
   title: string;
   boardIndex: number;
-  // setActiveTitle: Dispatch<SetStateAction<string>>;
+  setActiveBoardIndex: Dispatch<SetStateAction<number>>;
 };
 
-const BoardButton = ({ title, boardIndex }: BoardProps) => {
+const BoardButton = ({
+  title,
+  boardIndex,
+  setActiveBoardIndex,
+}: BoardProps) => {
   const useSelector = useTypedSelector;
   const dispatch = useTypedDispatch();
+
+  const handleClick = () => {
+    dispatch(setActiveColumn(boardIndex));
+    setActiveBoardIndex(boardIndex);
+  };
 
   const activeCol = useSelector((state) => state.data.activeColIndex);
   return (
     <button
-      onClick={() => dispatch(setActiveColumn(boardIndex))}
+      onClick={handleClick}
       className={`${
         activeCol === boardIndex
           ? "bg-buttonsMain text-white w-full md:w-[17rem]"

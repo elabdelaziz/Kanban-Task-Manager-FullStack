@@ -3,6 +3,8 @@ import TodoColumn from "./columns/Column";
 import { useEffect, useState } from "react";
 import NewColumn from "./columns/New";
 import {
+  ActiveBoard,
+  BoardsEntity,
   dragAndDrop,
   getLocalData,
   setActiveColumn,
@@ -20,6 +22,8 @@ import ThemeSwitch from "./ThemeSwitch";
 import useIsMobile from "@/hooks/useIsMobile";
 import BoardsMobile from "./BoardsMobile";
 import LoginModal from "./LoginModal";
+import useLocalStorage from "@/hooks/useLocalStorage";
+import DeleteTaskConfirmation from "./DeleteTaskConfirmation";
 
 type AppLayoutProps = {
   darkMode: boolean;
@@ -49,8 +53,11 @@ const AppLayout = ({ darkMode, toggleDarkMode }: AppLayoutProps) => {
   const dispatch = useTypedDispatch();
   const isMobile = useIsMobile();
   const { data } = useTypedSelector((state) => state.data);
-  const activeColIndex = useTypedSelector((state) => state.data.activeColIndex);
-  const activeColName = data.find((_item, i) => i === activeColIndex)?.name;
+  const activeColumn = useTypedSelector((state) => state.data.activeColIndex);
+  // console.log(activeColumn);
+  // const activeBoardIndex = useTypedSelector(
+  //   (state) => state.data.activeColIndex
+  // );
 
   const [newTaskMode, setNewTaskMode] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -58,14 +65,30 @@ const AppLayout = ({ darkMode, toggleDarkMode }: AppLayoutProps) => {
   const [showNewBoardModal, setShowNewBoardModal] = useState(false);
   const [showEditBoard, setShowEditBoard] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showDeleteTask, setShowDeleteTask] = useState(false);
   const [showNewColumnModal, setShowNewColumnModal] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [showBoardsMobile, setShowBoardsMobile] = useState(false);
-  const [renderTaskModal, setRenderTaskModal] = useState<TasksEntity | null>(
-    null
-  );
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TasksEntity | null>(null);
 
-  const activeBoard = data.find((item) => item.isActive) || null;
+  const [activeBoardIndex, setActiveBoardIndex] = useState(0);
+  const activeBoardName = data.find((_item, i) => i === activeBoardIndex)?.name;
+
+  const [userToken] = useLocalStorage("token", null);
+
+  const activeBoard = data.find((item, i) => i === activeBoardIndex) || null;
+
+  console.log(selectedTask);
+
+  // useEffect(() => {
+  //   if (activeBoardIndex) {
+  //     let dataa = data.find((item, i) => i === activeBoardIndex);
+  //     if (dataa) {
+  //       setActiveBoard(dataa);
+  //     }
+  //   }
+  // }, [activeBoard]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -77,8 +100,10 @@ const AppLayout = ({ darkMode, toggleDarkMode }: AppLayoutProps) => {
         console.error(err);
       }
     };
-    fetchData();
-  }, []);
+    if (!userToken) {
+      fetchData();
+    }
+  }, [userToken]);
 
   useEffect(() => {
     if (data.length > 0) {
@@ -141,7 +166,7 @@ const AppLayout = ({ darkMode, toggleDarkMode }: AppLayoutProps) => {
         </div>
         <nav className="min-w-[300px] flex items-center px-[2rem] justify-between border-b-[1px] border-b-borderMainWhite dark:border-b-borderMain">
           <h2 className="text-[clamp(1.2rem,3vw,1.5rem)] flex items-center whitespace-nowrap font-[700] ">
-            {activeColName || ""}
+            {activeBoardName || ""}
             {isMobile && (
               <img
                 onClick={() => setShowBoardsMobile(true)}
@@ -195,7 +220,12 @@ const AppLayout = ({ darkMode, toggleDarkMode }: AppLayoutProps) => {
                 <h3 className="pl-[2rem] mb-[1rem]">All Boards {"(3)"}</h3>
                 {data &&
                   data.map((item, i) => (
-                    <BoardButton key={i} boardIndex={i} title={item.name} />
+                    <BoardButton
+                      key={i}
+                      boardIndex={i}
+                      title={item.name}
+                      setActiveBoardIndex={setActiveBoardIndex}
+                    />
                   ))}
                 <button
                   onClick={() => setShowNewBoardModal(true)}
@@ -247,8 +277,8 @@ const AppLayout = ({ darkMode, toggleDarkMode }: AppLayoutProps) => {
             <>
               <DragDropContext onDragEnd={onDragEnd}>
                 {data &&
-                  data.map((item) => {
-                    if (item.isActive) {
+                  data.map((item, i) => {
+                    if (i === activeBoardIndex) {
                       return item?.columns?.map((col, i) => {
                         return (
                           <TodoColumn
@@ -256,7 +286,8 @@ const AppLayout = ({ darkMode, toggleDarkMode }: AppLayoutProps) => {
                             data={data}
                             column={col}
                             index={i}
-                            setRenderTaskModal={setRenderTaskModal}
+                            setSelectedTask={setSelectedTask}
+                            setShowTaskModal={setShowTaskModal}
                           />
                         );
                       });
@@ -290,14 +321,22 @@ const AppLayout = ({ darkMode, toggleDarkMode }: AppLayoutProps) => {
             activeBoard={activeBoard}
           />
         )}
+        {showDeleteTask && (
+          <DeleteTaskConfirmation
+            setShowDeleteTask={setShowDeleteTask}
+            task={selectedTask}
+            activeBoard={activeBoard}
+          />
+        )}
         {showNewColumnModal && (
           <NewColumnModal setShowNewColumnModal={setShowNewColumnModal} />
         )}
-        {renderTaskModal !== null && (
+        {showTaskModal && (
           <TaskModal
             activeBoard={activeBoard}
-            task={renderTaskModal}
-            setShowTaskModal={setRenderTaskModal}
+            task={selectedTask}
+            setShowTaskModal={setShowTaskModal}
+            setShowDeleteTask={setShowDeleteTask}
           />
         )}
         {showBoardsMobile && isMobile && (

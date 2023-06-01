@@ -76,6 +76,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
     const user = await userModel.authenticate(email, password);
+    console.log(user);
     const token = jwt.sign({ user }, config.jwToken as string);
 
     if (!user) {

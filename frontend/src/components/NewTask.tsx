@@ -3,6 +3,7 @@ import { useForm, useFieldArray, SubmitHandler } from "react-hook-form";
 import { BoardsEntity, TasksEntity, addTask } from "@/reducers/dataSlice";
 import { nanoid } from "@reduxjs/toolkit";
 import { useTypedDispatch } from "@/hooks/useRedux";
+import instance from "@/utils/axiosInstance";
 
 type NewTaskTypes = {
   setNewTaskMode: Dispatch<SetStateAction<boolean>>;
@@ -48,9 +49,23 @@ const NewTaskModal = ({ setNewTaskMode, activeBoard }: NewTaskTypes) => {
     setIsDropOpen(false);
   };
 
-  const onSubmit: SubmitHandler<TasksEntity> = (data) => {
-    dispatch(addTask({ task: data }));
-    // dispatch(closeModal());
+  const onSubmit: SubmitHandler<TasksEntity> = async (data) => {
+    const t = data.title;
+    console.log(data);
+
+    const columnId = activeBoard?.columns.find(
+      (column) => column.name === data.status
+    )?.id;
+    // dispatch(addTask({ task: data }));
+    try {
+      const response = await instance.post("/api/tasks", {
+        data,
+        columnId,
+      } as any);
+      return response;
+    } catch (err) {
+      throw new Error("cannot add task to database", err as ErrorOptions);
+    }
   };
 
   const handleAddNewSubtask = () => {
@@ -100,10 +115,12 @@ const NewTaskModal = ({ setNewTaskMode, activeBoard }: NewTaskTypes) => {
                 {fields.map((item, index) => {
                   return (
                     <>
-                      <div className="w-full flex mb-[1rem]">
+                      <div key={item.id} className="w-full flex mb-[1rem]">
                         <input
                           className="bg-transparent flex-1 text-[0.8125rem] p-[0.7rem_0.5rem] rounded-[4px] border-[1px] border-solid border-inputBorder transition-[border_.2s_ease]"
-                          id="subtasks"
+                          type="text"
+                          defaultValue={`${item.title}`}
+                          {...register(`subtasks.${index}.title`)}
                         />
                         <button
                           type="button"

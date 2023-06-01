@@ -13,10 +13,17 @@ type TodoTypes = {
   column: ColumnsEntity;
   index: number;
   data: BoardsEntity[];
-  setRenderTaskModal: Dispatch<SetStateAction<TasksEntity | null>>;
+  setSelectedTask: Dispatch<SetStateAction<TasksEntity | null>>;
+  setShowTaskModal: Dispatch<SetStateAction<boolean>>;
 };
 
-const TodoColumn = ({ column, index, data, setRenderTaskModal }: TodoTypes) => {
+const TodoColumn = ({
+  column,
+  index,
+  data,
+  setSelectedTask,
+  setShowTaskModal,
+}: TodoTypes) => {
   // const dispatch = useTypedDispatch();
 
   // function handleOnDrop(e: React.DragEvent) {
@@ -68,22 +75,25 @@ const TodoColumn = ({ column, index, data, setRenderTaskModal }: TodoTypes) => {
             >
               {column?.tasks &&
                 column.tasks.map((task, taskIndex) => (
-                  <Draggable
-                    key={taskIndex}
-                    draggableId={task?.id?.toString() || taskIndex.toString()}
-                    index={taskIndex}
-                  >
-                    {(draggableProvided, draggableSnapshot) => (
-                      <MainCard
-                        key={taskIndex}
-                        task={task}
-                        taskIndex={taskIndex}
-                        colIndex={index}
-                        provided={draggableProvided}
-                        setRenderTaskModal={setRenderTaskModal}
-                      />
-                    )}
-                  </Draggable>
+                  <>
+                    <Draggable
+                      key={taskIndex}
+                      draggableId={task?.id?.toString() || taskIndex.toString()}
+                      index={taskIndex}
+                    >
+                      {(draggableProvided, draggableSnapshot) => (
+                        <MainCard
+                          key={taskIndex}
+                          task={task}
+                          taskIndex={taskIndex}
+                          colIndex={index}
+                          provided={draggableProvided}
+                          setSelectedTask={setSelectedTask}
+                          setShowTaskModal={setShowTaskModal}
+                        />
+                      )}
+                    </Draggable>
+                  </>
                 ))}
             </div>
           )}

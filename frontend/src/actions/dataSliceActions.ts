@@ -1,7 +1,12 @@
-import { DataState } from "@/reducers/dataSlice";
-import { AnyAction, current } from "@reduxjs/toolkit";
+import { DataState, TasksEntity } from "@/reducers/dataSlice";
+import { AnyAction, createAsyncThunk, current } from "@reduxjs/toolkit";
+import instance from "@/utils/axiosInstance";
 
 export const onGetLocalData = (state: DataState, action: AnyAction) => {
+  return { ...state, data: action.payload };
+};
+
+export const onPopulateUserData = (state: DataState, action: AnyAction) => {
   return { ...state, data: action.payload };
 };
 
@@ -45,13 +50,40 @@ export const onDeleteBoard = (state: DataState, _action: AnyAction) => {
 
 export const onAddTask = (state: DataState, action: AnyAction) => {
   const data = action.payload.task;
-  const board = state.data.find((board) => board.isActive);
+  const board = state.data.find((board, i) => i === state.activeColIndex);
   const selectedColumn = board?.columns.find((col) => col.name === data.status);
 
   if (selectedColumn) {
     selectedColumn.tasks.push(data);
+  } else {
+    throw new Error("cannot add task to redux state");
   }
 };
+
+// export const onAddTask = createAsyncThunk(
+//   "tasks/addTask",
+//   async (task: TasksEntity, { getState, rejectWithValue }) => {
+//     try {
+//       const state = getState() as DataState;
+//       const activeBoard = state.data.find(
+//         (board, i) => i === state.activeColIndex
+//       );
+//       const selectedColumn = activeBoard?.columns.find(
+//         (col) => col.name === task.status
+//       );
+
+//       if (selectedColumn) {
+//         selectedColumn.tasks.push(task);
+//         await instance.post("/api/tasks", [task, selectedColumn.id]);
+//         return task;
+//       } else {
+//         throw new Error("Selected column not found.");
+//       }
+//     } catch (err) {
+//       return rejectWithValue(err);
+//     }
+//   }
+// );
 
 export const onAddNewColumn = (state: DataState, action: AnyAction) => {
   const data = action.payload.title;

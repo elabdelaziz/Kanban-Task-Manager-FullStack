@@ -2,11 +2,9 @@ import React, { useState, Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import instance from "@/utils/axiosInstance";
 import useLocalStorage from "@/hooks/useLocalStorage";
-
-type LoginFormInput = {
-  email: string;
-  password: string;
-};
+import { useTypedDispatch } from "@/hooks/useRedux";
+import { populateUserData } from "@/reducers/dataSlice";
+import { LoginFormInput, loginUser } from "@/models/userData";
 
 type Props = {
   setOpenLoginModal: Dispatch<SetStateAction<boolean>>;
@@ -19,14 +17,17 @@ const LoginModal = ({ setOpenLoginModal }: Props) => {
     formState: { errors },
   } = useForm<LoginFormInput>();
 
+  const dispatch = useTypedDispatch();
+
   const [isLoading, setIsLoading] = useState(false);
-  const [userToken, setToken] = useLocalStorage("token", null);
+  const [, setToken] = useLocalStorage("token", null);
 
   const onSubmit = async (data: LoginFormInput) => {
     try {
-      const response = await instance.post("/api/users/auth", data);
-      const { token } = response.data.data;
-      setToken(token);
+      const response = await loginUser(data);
+      const userData: any = response.data.data;
+      setToken(userData.token);
+      dispatch(populateUserData(userData.boards));
       // handle success
     } catch (error) {
       throw new Error("cannot login user");
